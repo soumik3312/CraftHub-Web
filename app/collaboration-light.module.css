@@ -1,0 +1,9 @@
+.root{min-width:0}
+
+:global(.app-shell[data-theme="light"]) .root{--cw-text:#282330;--cw-muted:#716a7a;--cw-line:#e8e1ed;color:#282330}
+:global(.app-shell[data-theme="light"]) .root :is(article,header){border-color:#e8e1ed;color:#282330;box-shadow:0 10px 28px rgba(52,33,70,.06)}
+:global(.app-shell[data-theme="light"]) .root :is(article,header){background:#fff}
+:global(.app-shell[data-theme="light"]) .root :is(h1,h2,h3,b){color:#282330}
+:global(.app-shell[data-theme="light"]) .root :is(p,small,time){color:#716a7a}
+:global(.app-shell[data-theme="light"]) .root input{border-color:#ddd3e4;background:#fff;color:#282330}
+:global(.app-shell[data-theme="light"]) .root article button{border-color:#e0d5e7}
