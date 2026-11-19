@@ -1773,7 +1773,7 @@ function Messages({ token, user, flash, refresh }) {
   const [groupOpen, setGroupOpen] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [groupIds, setGroupIds] = useState([]);
-  const messagesEndRef = useRef(null);
+  const messageListRef = useRef(null);
 
   const load = useCallback(async () => {
     try {
@@ -1813,8 +1813,10 @@ function Messages({ token, user, flash, refresh }) {
   }, [selected, token, refresh]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (messageListRef.current) {
+      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+    }
+  }, [messages, selected]);
 
   async function send(e) {
     e.preventDefault();
@@ -1879,7 +1881,7 @@ function Messages({ token, user, flash, refresh }) {
   const active = convs.find((c) => c.id === selected);
 
   return (
-    <div className="chat-window">
+    <div className={`chat-window ${selected ? 'has-active' : ''}`}>
       <aside className="chat-list">
         <div className="chat-list-head">
           <div>
@@ -1969,8 +1971,17 @@ function Messages({ token, user, flash, refresh }) {
         {active ? (
           <>
             <div className="chat-header">
+              <button
+                type="button"
+                className="chat-mobile-back"
+                onClick={() => setSelected('')}
+                title="Back to all inboxes"
+              >
+                <IconArrowLeft size={15} />
+                <span>Inboxes</span>
+              </button>
               {avatar(active.otherUsers?.[0], 'small')}
-              <div>
+              <div style={{ minWidth: 0, flex: 1 }}>
                 <b>{active.name}</b>
                 <small>
                   {active.type === 'group' ? 'Project workspace chat' : 'CraftHub conversation'}
@@ -1981,7 +1992,7 @@ function Messages({ token, user, flash, refresh }) {
               </span>
             </div>
 
-            <div className="message-list">
+            <div className="message-list" ref={messageListRef}>
               {messages.map((m) => (
                 <div
                   className={`message-row ${m.sender?.id === user.id ? 'mine' : ''}`}
@@ -2008,7 +2019,6 @@ function Messages({ token, user, flash, refresh }) {
                   </div>
                 </div>
               ))}
-              <div ref={messagesEndRef} />
             </div>
 
             {reply && (

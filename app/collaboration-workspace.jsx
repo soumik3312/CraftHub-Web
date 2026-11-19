@@ -1258,7 +1258,7 @@ export function ProjectWorkspaceChat({
   const [message, setMessage] = useState('');
   const [reply, setReply] = useState(null);
   const [loading, setLoading] = useState(true);
-  const messagesEndRef = useRef(null);
+  const messageListRef = useRef(null);
 
   const loadMessages = useCallback(async () => {
     try {
@@ -1279,7 +1279,9 @@ export function ProjectWorkspaceChat({
   }, [api, loadMessages, projectId, token]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messageListRef.current) {
+      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -1367,7 +1369,7 @@ export function ProjectWorkspaceChat({
           </span>
           <span>{project?.workspace?.repoFullName || 'Shared collaboration chat'}</span>
         </div>
-        <div className={styles.messageList}>
+        <div className={styles.messageList} ref={messageListRef}>
           {loading ? (
             <div className={styles.loading}>Loading project chat…</div>
           ) : (
@@ -1402,7 +1404,6 @@ export function ProjectWorkspaceChat({
               </div>
             ))
           )}
-          <div ref={messagesEndRef} />
         </div>
 
         {reply && (

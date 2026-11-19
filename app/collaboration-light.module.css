@@ -61,6 +61,17 @@
   border-color: #ede9fe;
 }
 
+:global(.app-shell[data-theme="light"]) .root .primaryButton,
+:global(.app-shell[data-theme="light"]) .root [class*="primaryButton"] {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%) !important;
+}
+
+:global(.app-shell[data-theme="light"]) .root .primaryButton *,
+:global(.app-shell[data-theme="light"]) .root [class*="primaryButton"] * {
+  color: #ffffff !important;
+}
+
 :global(.app-shell[data-theme="light"]) .root .pulseStats > div {
   background: #f8fafc;
   border-color: #e2e8f0;
@@ -74,6 +85,25 @@
 :global(.app-shell[data-theme="light"]) .root .editorShell {
   background: #0f0f15;
   border-color: #282836;
+}
+
+:global(.app-shell[data-theme="light"]) .root .editorShell .primaryButton {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #c084fc 0%, #9333ea 100%) !important;
+}
+
+:global(.app-shell[data-theme="light"]) .root .editorShell .primaryButton * {
+  color: #ffffff !important;
+}
+
+:global(.app-shell[data-theme="light"]) .root .editorShell .softButton {
+  color: #ffffff !important;
+  background: #201e2b !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+:global(.app-shell[data-theme="light"]) .root .editorShell .softButton * {
+  color: #ffffff !important;
 }
 
 :global(.app-shell[data-theme="light"]) .root .editorToolbar {
