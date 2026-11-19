@@ -1,9 +1,108 @@
-.root{min-width:0}
+.root {
+  min-width: 0;
+}
 
-:global(.app-shell[data-theme="light"]) .root{--cw-text:#282330;--cw-muted:#716a7a;--cw-line:#e8e1ed;color:#282330}
-:global(.app-shell[data-theme="light"]) .root :is(article,header){border-color:#e8e1ed;color:#282330;box-shadow:0 10px 28px rgba(52,33,70,.06)}
-:global(.app-shell[data-theme="light"]) .root :is(article,header){background:#fff}
-:global(.app-shell[data-theme="light"]) .root :is(h1,h2,h3,b){color:#282330}
-:global(.app-shell[data-theme="light"]) .root :is(p,small,time){color:#716a7a}
-:global(.app-shell[data-theme="light"]) .root input{border-color:#ddd3e4;background:#fff;color:#282330}
-:global(.app-shell[data-theme="light"]) .root article button{border-color:#e0d5e7}
+:global(.app-shell[data-theme="light"]) .root {
+  --cw-bg: #f8fafc;
+  --cw-panel: #ffffff;
+  --cw-panel-elevated: #f1f5f9;
+  --cw-line: #e2e8f0;
+  --cw-line-strong: #cbd5e1;
+  --cw-text: #0f172a;
+  --cw-muted: #64748b;
+  --cw-purple: #7c3aed;
+  color: #0f172a;
+}
+
+:global(.app-shell[data-theme="light"]) .root :is(article, header, .requests, .panel, .pulsePanel, .setupCard, .collabCard) {
+  border-color: #e2e8f0;
+  color: #0f172a;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+:global(.app-shell[data-theme="light"]) .root :is(h1, h2, h3, b) {
+  color: #0f172a;
+}
+
+:global(.app-shell[data-theme="light"]) .root :is(p, small, time) {
+  color: #64748b;
+}
+
+:global(.app-shell[data-theme="light"]) .root input {
+  border-color: #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+:global(.app-shell[data-theme="light"]) .root input:focus {
+  border-color: #7c3aed;
+}
+
+:global(.app-shell[data-theme="light"]) .root .softButton {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+:global(.app-shell[data-theme="light"]) .root .softButton:hover {
+  background: #e2e8f0;
+}
+
+:global(.app-shell[data-theme="light"]) .root .hubHeader {
+  background: radial-gradient(circle at 85% 15%, rgba(139, 92, 246, 0.15), transparent 40%),
+              linear-gradient(135deg, #faf5ff, #ffffff);
+  border-color: #ede9fe;
+}
+
+:global(.app-shell[data-theme="light"]) .root .projectHero {
+  background: radial-gradient(circle at 90% 15%, rgba(14, 165, 233, 0.1), transparent 40%),
+              linear-gradient(145deg, #fdfaff, #ffffff);
+  border-color: #ede9fe;
+}
+
+:global(.app-shell[data-theme="light"]) .root .pulseStats > div {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+:global(.app-shell[data-theme="light"]) .root .pulseStats b {
+  color: #0f172a;
+}
+
+/* Monaco Editor and surrounding code box MUST remain dark for readability */
+:global(.app-shell[data-theme="light"]) .root .editorShell {
+  background: #0f0f15;
+  border-color: #282836;
+}
+
+:global(.app-shell[data-theme="light"]) .root .editorToolbar {
+  background: #15151e;
+  border-color: #282836;
+}
+
+:global(.app-shell[data-theme="light"]) .root .editorToolbar b {
+  color: #ffffff;
+}
+
+:global(.app-shell[data-theme="light"]) .root .editorTab {
+  background: #14141c;
+  border-color: #282836;
+  color: #ffffff;
+}
+
+:global(.app-shell[data-theme="light"]) .root .fileTree {
+  background: #111118;
+  border-color: #282836;
+}
+
+:global(.app-shell[data-theme="light"]) .root .commitRow {
+  background: #15151e;
+  border-color: #282836;
+}
+
+:global(.app-shell[data-theme="light"]) .root .commitRow input {
+  background: #0d0d13;
+  color: #ffffff;
+  border-color: #383848;
+}
