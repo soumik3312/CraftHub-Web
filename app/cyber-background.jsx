@@ -7,7 +7,7 @@ import React, { useEffect, useRef } from 'react';
  * Combines flowing fluid aurora plasma, 3D perspective cyber grid, interactive
  * constellation particle field, and volumetric neon lighting blooms.
  */
-export default function CyberBackground({ interactive = true, density = 'normal' }) {
+export default function CyberBackground({ interactive = true, density = 'normal', className = '' }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -273,7 +273,7 @@ export default function CyberBackground({ interactive = true, density = 'normal'
   }, [interactive, density]);
 
   return (
-    <div className="cyber-canvas-shell" aria-hidden="true">
+    <div className={`cyber-canvas-shell ${className}`} aria-hidden="true">
       <canvas ref={canvasRef} className="cyber-canvas" />
       <div className="cyber-canvas-overlay" />
       <div className="cyber-canvas-vignette" />

@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import LandingAuth from './landing-auth';
+import CyberBackground from './cyber-background';
 import {
   CollaborationHub,
   CollaborationProjectDetail,
@@ -243,6 +244,9 @@ export default function App() {
 
   return (
     <div className="app-shell" data-theme={resolvedTheme}>
+      {/* Ambient Dynamic Cybernetic Canvas Background */}
+      <CyberBackground interactive={false} density="low" className="app-cyber-bg" />
+
       <aside className="sidebar">
         <div className="brand" onClick={() => change('feed')}>
           <span className="brand-mark">
@@ -386,23 +390,25 @@ export default function App() {
         </header>
 
         <div className="page-wrap">
-          <Page
-            page={page}
-            setPage={change}
-            token={token}
-            user={user}
-            query={query}
-            setQuery={setQuery}
-            flash={flash}
-            refresh={refresh}
-            onProfile={(id) => change(id ? `user:${id}` : `people`)}
-            onLogout={() => {
-              localStorage.removeItem('ch_token');
-              setToken(null);
-              setUser(null);
-            }}
-            onUser={setUser}
-          />
+          <div key={page} className="page-transition-wrap">
+            <Page
+              page={page}
+              setPage={change}
+              token={token}
+              user={user}
+              query={query}
+              setQuery={setQuery}
+              flash={flash}
+              refresh={refresh}
+              onProfile={(id) => change(id ? `user:${id}` : `people`)}
+              onLogout={() => {
+                localStorage.removeItem('ch_token');
+                setToken(null);
+                setUser(null);
+              }}
+              onUser={setUser}
+            />
+          </div>
         </div>
       </main>
 

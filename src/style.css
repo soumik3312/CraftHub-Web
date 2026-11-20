@@ -173,6 +173,45 @@ a {
 .app-shell {
   min-height: 100vh;
   display: flex;
+  position: relative;
+  background: transparent;
+}
+
+.app-cyber-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+.app-shell[data-theme="light"] .app-cyber-bg {
+  opacity: 0.16;
+}
+
+.app-shell > aside,
+.app-shell > main,
+.app-shell > header,
+.app-shell > nav,
+.app-shell > .mobile-topbar,
+.app-shell > .mobile-bottom-nav {
+  position: relative;
+  z-index: 1;
+}
+
+.page-transition-wrap {
+  animation: pageEntrance 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pageEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.995);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .sidebar {
@@ -274,16 +313,23 @@ a {
 .nav-item:hover {
   background: var(--bg-surface);
   color: var(--ink);
-  border-color: var(--line);
-  transform: translateX(2px);
+  border-color: rgba(168, 85, 247, 0.25);
+  transform: translateX(4px);
 }
 
 .nav-item.active {
-  background: linear-gradient(90deg, rgba(168, 85, 247, 0.18), rgba(168, 85, 247, 0.05));
+  background: linear-gradient(90deg, rgba(168, 85, 247, 0.22), rgba(168, 85, 247, 0.05));
   color: #f3e8ff;
   font-weight: 700;
   border-color: rgba(168, 85, 247, 0.35);
-  box-shadow: inset 3px 0 0 var(--purple), 0 4px 16px rgba(168, 85, 247, 0.12);
+  box-shadow: inset 3px 0 0 var(--purple), 0 4px 18px rgba(168, 85, 247, 0.16);
+}
+
+.nav-item.active .nav-icon {
+  transform: scale(1.14);
+  color: #c084fc;
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.55));
+  transition: transform 0.2s var(--ease-spring);
 }
 
 .app-shell[data-theme="light"] .nav-item.active {
@@ -322,12 +368,21 @@ a {
   background: var(--emerald);
   border-radius: 50%;
   box-shadow: 0 0 10px var(--emerald);
-  animation: pulseDot 2s infinite ease-in-out;
+  position: relative;
 }
 
-@keyframes pulseDot {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.35); opacity: 0.65; }
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  background: inherit;
+  animation: radarPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes radarPing {
+  0% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(2.6); opacity: 0; }
 }
 
 .sidebar-bottom {
@@ -834,15 +889,15 @@ button[class*="primaryButton"] {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  transition: border-color 0.24s ease, transform 0.24s var(--ease-spring), box-shadow 0.24s ease;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.25s var(--ease-spring);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .post-card:hover, .project-card:hover, .person-card:hover, .request-card:hover {
-  border-color: rgba(192, 132, 252, 0.35);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), var(--shadow-glow);
-  transform: translateY(-2px);
+  border-color: rgba(192, 132, 252, 0.45);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 28px rgba(168, 85, 247, 0.2);
+  transform: translateY(-3px);
 }
 
 /* Post Cards */
@@ -1000,16 +1055,33 @@ button[class*="primaryButton"] {
   gap: 6px;
   padding: 6px 10px;
   border-radius: var(--radius-sm);
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .post-actions button:hover {
   color: var(--purple);
   background: rgba(168, 85, 247, 0.1);
+  transform: translateY(-1px);
+}
+
+.post-actions button:hover svg {
+  transform: scale(1.18);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .post-actions .liked {
   color: var(--rose);
+}
+
+.post-actions .liked svg {
+  animation: heartPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.4); }
+  80% { transform: scale(0.92); }
+  100% { transform: scale(1); }
 }
 
 .post-actions .liked:hover {
