@@ -54,12 +54,24 @@ export default function LandingAuth({ onAuth, flash, request }) {
   const [form, setForm] = useState({ name: '', username: '', password: '', bio: '' });
   const [code, setCode] = useState('');
   const [selected, setSelected] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Interactive simulated commit bar in the hero preview
   const [simulatedCommit, setSimulatedCommit] = useState('feat: setup shared monaco workspace');
   const [pushed, setPushed] = useState(false);
 
-  // Sync with window.location.hash if user visits #login or #signup
+  // Responsive mobile screen detection
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 880;
+      setIsMobile(mobile);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Sync with window.location.hash or default to mobile auth
   useEffect(() => {
     const handleHash = () => {
       const h = window.location.hash.toLowerCase();
@@ -67,6 +79,11 @@ export default function LandingAuth({ onAuth, flash, request }) {
         setView('login');
       } else if (h === '#signup') {
         setView('signup');
+      } else if (h === '#tour' || h === '#features') {
+        setView('landing');
+      } else if (window.innerWidth <= 880 && (!h || h === '#')) {
+        // Direct mobile login experience on phones
+        setView('login');
       }
     };
     handleHash();
@@ -148,6 +165,235 @@ export default function LandingAuth({ onAuth, flash, request }) {
     e.preventDefault();
     setPushed(true);
     setTimeout(() => setPushed(false), 2400);
+  }
+
+  // Mobile dedicated full-screen auth flow (no modal dialogs on phones!)
+  if (isMobile && (view === 'login' || view === 'signup')) {
+    return (
+      <div className="landing-shell mobile-auth-shell">
+        <CyberBackground interactive={false} density="low" />
+
+        <div className="auth-mobile-container">
+          <header className="mobile-auth-header">
+            <div
+              className="brand brand-glow"
+              onClick={() => {
+                setView('login');
+                window.location.hash = 'login';
+              }}
+            >
+              <span className="brand-mark">
+                <img src="/brand/app-logo.png" alt="CraftHub" />
+              </span>
+              <span className="brand-text">
+                Craft<span className="brand-light">Hub</span>
+              </span>
+              <span className="brand-badge">2.0</span>
+            </div>
+            <p className="mobile-auth-tagline">Open Collaboration Platform for Builders</p>
+          </header>
+
+          <div className="auth-mobile-card">
+            <div className="auth-mode-switch">
+              <button
+                type="button"
+                className={`mode-tab ${view === 'login' ? 'active' : ''}`}
+                onClick={() => {
+                  setView('login');
+                  setStep('form');
+                  setErr('');
+                  window.location.hash = 'login';
+                }}
+              >
+                Log in
+              </button>
+              <button
+                type="button"
+                className={`mode-tab ${view === 'signup' ? 'active' : ''}`}
+                onClick={() => {
+                  setView('signup');
+                  setStep('form');
+                  setErr('');
+                  window.location.hash = 'signup';
+                }}
+              >
+                Create account
+              </button>
+            </div>
+
+            <div className="auth-card-body">
+              <div className="eyebrow">
+                {step === 'otp'
+                  ? 'ONE-TIME EMAIL VERIFICATION'
+                  : view === 'login'
+                  ? 'WELCOME BACK, BUILDER'
+                  : 'JOIN THE COMMUNITY'}
+              </div>
+              <h2 className="auth-title">
+                {step === 'otp'
+                  ? 'Check your inbox'
+                  : view === 'login'
+                  ? 'Sign in to workspace'
+                  : 'Start building on CraftHub'}
+              </h2>
+              <p className="auth-subtitle">
+                {step === 'otp'
+                  ? `Enter the 6-digit verification code sent to ${email}.`
+                  : view === 'login'
+                  ? 'Access your collaborated projects, Monaco workspaces, and conversations.'
+                  : 'Find teammates, share code, and ship software with full mobile sync.'}
+              </p>
+
+              {step === 'form' ? (
+                <form onSubmit={submit} className="auth-form-styled">
+                  {view === 'signup' && (
+                    <div className="auth-form-row-2">
+                      <label>
+                        Full name
+                        <input
+                          required
+                          value={form.name}
+                          onChange={(e) => setField('name', e.target.value)}
+                          placeholder="Alex Morgan"
+                        />
+                      </label>
+                      <label>
+                        Username
+                        <input
+                          required
+                          value={form.username}
+                          onChange={(e) => setField('username', e.target.value)}
+                          placeholder="alexmorgan"
+                        />
+                      </label>
+                    </div>
+                  )}
+
+                  <label>
+                    Email address
+                    <input
+                      required
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@domain.com"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                    />
+                  </label>
+
+                  <label>
+                    Password
+                    <input
+                      required
+                      type="password"
+                      value={form.password}
+                      onChange={(e) => setField('password', e.target.value)}
+                      placeholder={
+                        view === 'login'
+                          ? 'Enter your account password'
+                          : 'Create a password (minimum 7 characters)'
+                      }
+                    />
+                  </label>
+
+                  {view === 'signup' && (
+                    <>
+                      <label>
+                        Short bio <span className="optional">optional</span>
+                        <textarea
+                          rows="2"
+                          value={form.bio}
+                          onChange={(e) => setField('bio', e.target.value)}
+                          placeholder="What stacks are you working with or excited about?"
+                        />
+                      </label>
+
+                      <div className="genre-select">
+                        <span>Pick your primary interests</span>
+                        <div className="genre-pills">
+                          {genres.map((g) => (
+                            <button
+                              type="button"
+                              className={selected.includes(g) ? 'selected' : ''}
+                              onClick={() =>
+                                setSelected((s) =>
+                                  s.includes(g) ? s.filter((x) => x !== g) : [...s, g]
+                                )
+                              }
+                              key={g}
+                            >
+                              {g}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <button className="primary full auth-submit-btn" disabled={busy}>
+                    {busy
+                      ? 'Please wait…'
+                      : view === 'login'
+                      ? 'Sign in to workspace →'
+                      : 'Create account & verify →'}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={verify} className="auth-form-styled">
+                  <label>
+                    6-Digit Verification Code
+                    <input
+                      required
+                      inputMode="numeric"
+                      maxLength="6"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      placeholder="000000"
+                      className="otp-input-field"
+                      autoFocus
+                    />
+                  </label>
+                  <button className="primary full auth-submit-btn" disabled={busy}>
+                    {busy ? 'Verifying…' : 'Verify & Continue →'}
+                  </button>
+                  <div className="otp-actions-row">
+                    <button type="button" className="text-button" onClick={resend}>
+                      Resend code
+                    </button>
+                    <button
+                      type="button"
+                      className="text-button muted"
+                      onClick={() => setStep('form')}
+                    >
+                      Use another email
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {err && <div className="form-error">{err}</div>}
+
+              <div className="auth-footer-terms">
+                By continuing, you agree to CraftHub guidelines and terms of service.
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="mobile-tour-trigger-btn"
+            onClick={() => {
+              setView('landing');
+              window.location.hash = 'tour';
+            }}
+          >
+            <IconSparkles size={16} />
+            <span>Explore Platform Tour & Features ↓</span>
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const isAuthModal = view === 'login' || view === 'signup';
@@ -812,6 +1058,31 @@ export default function LandingAuth({ onAuth, flash, request }) {
               </div>
             </div>
           </div>
+        </div>
+      )}
+      {/* Sticky Mobile Bottom Bar when viewing Tour */}
+      {isMobile && (
+        <div className="mobile-landing-sticky-bar">
+          <button
+            type="button"
+            className="nav-ghost-btn"
+            onClick={() => {
+              setView('login');
+              window.location.hash = 'login';
+            }}
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            className="primary nav-cta-btn"
+            onClick={() => {
+              setView('signup');
+              window.location.hash = 'signup';
+            }}
+          >
+            <span>Start Building Free →</span>
+          </button>
         </div>
       )}
     </div>

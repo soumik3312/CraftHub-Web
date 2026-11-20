@@ -125,6 +125,7 @@ function getGreeting() {
 export default function App() {
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
+  const [authChecking, setAuthChecking] = useState(true);
   const [page, setPage] = useState('feed');
   const [notice, setNotice] = useState('');
   const [query, setQuery] = useState('');
@@ -141,26 +142,30 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const saved = localStorage.getItem('ch_token');
-    if (saved) setToken(saved);
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('ch_token') : null;
+    if (saved) {
+      setToken(saved);
+      request('/auth/me', { token: saved })
+        .then((d) => {
+          setUser(d.user || d);
+        })
+        .catch(() => {
+          localStorage.removeItem('ch_token');
+          setToken(null);
+          setUser(null);
+        })
+        .finally(() => {
+          setAuthChecking(false);
+        });
+    } else {
+      setAuthChecking(false);
+    }
   }, []);
 
   const flash = useCallback((s) => {
     setNotice(s);
     setTimeout(() => setNotice(''), 3500);
   }, []);
-
-  useEffect(() => {
-    if (token) {
-      request('/auth/me', { token })
-        .then((d) => setUser(d.user || d))
-        .catch(() => {
-          localStorage.removeItem('ch_token');
-          setToken(null);
-          setUser(null);
-        });
-    }
-  }, [token]);
 
   useEffect(() => {
     const route = () => {
@@ -219,6 +224,85 @@ export default function App() {
     window.history.replaceState(null, '', '#feed');
     setPage('feed');
   };
+
+  const isSubPage = useMemo(() => {
+    return (
+      page.startsWith('project:') ||
+      page.startsWith('workspace-chat:') ||
+      page.startsWith('post:') ||
+      page.startsWith('user:') ||
+      ['compose', 'settings', 'search', 'craftbro', 'people'].includes(page)
+    );
+  }, [page]);
+
+  const subPageTitle = useMemo(() => {
+    if (page.startsWith('workspace-chat:')) return 'Back to project';
+    if (page.startsWith('project:')) {
+      if (page.endsWith(':workspace')) return 'Back to project';
+      return 'Back to collab';
+    }
+    if (page.startsWith('post:')) return 'Back to feed';
+    if (page.startsWith('user:')) return 'Back to builders';
+    if (page === 'compose') return 'Cancel';
+    if (page === 'settings') return 'Preferences';
+    if (page === 'craftbro') return 'CraftBro AI';
+    if (page === 'search') return 'Search';
+    if (page === 'people') return 'Builders';
+    return 'Back';
+  }, [page]);
+
+  const handleMobileBack = () => {
+    if (page.startsWith('workspace-chat:')) {
+      const parts = page.split(':');
+      if (parts[2]) {
+        change(`project:${parts[2]}`);
+        return;
+      }
+      change('collab');
+      return;
+    }
+    if (page.startsWith('project:')) {
+      if (page.endsWith(':workspace')) {
+        const parts = page.split(':');
+        change(`project:${parts[1]}`);
+        return;
+      }
+      change('collab');
+      return;
+    }
+    if (page.startsWith('post:')) {
+      change('feed');
+      return;
+    }
+    if (page.startsWith('user:')) {
+      change('people');
+      return;
+    }
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      change('feed');
+    }
+  };
+
+  // Splash screen while validating existing stored token
+  if (authChecking) {
+    return (
+      <div className="auth-splash-screen">
+        <CyberBackground interactive={false} density="low" />
+        <div className="splash-content">
+          <div className="splash-logo-glow">
+            <img src="/brand/app-logo.png" alt="CraftHub" />
+          </div>
+          <div className="splash-title">
+            Craft<span className="brand-light">Hub</span>
+          </div>
+          <div className="splash-spinner" />
+          <p>Connecting to workspace…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!token || !user) return <LandingAuth onAuth={signIn} flash={flash} request={request} />;
 
@@ -332,14 +416,27 @@ export default function App() {
       <main className="main-area">
         {/* Mobile Top Navigation Header (Phones) */}
         <header className="mobile-topbar">
-          <div className="mobile-brand" onClick={() => change('feed')}>
-            <img src="/brand/app-logo.png" alt="CraftHub" />
-            <span>CraftHub</span>
-          </div>
+          {isSubPage ? (
+            <button
+              type="button"
+              className="mobile-nav-back"
+              onClick={handleMobileBack}
+              title="Go back"
+            >
+              <IconArrowLeft size={16} />
+              <span>{subPageTitle}</span>
+            </button>
+          ) : (
+            <div className="mobile-brand" onClick={() => change('feed')}>
+              <img src="/brand/app-logo.png" alt="CraftHub" />
+              <span>CraftHub</span>
+              <span className="mobile-brand-page-tag">{pageTitle(page)}</span>
+            </div>
+          )}
           <div className="mobile-top-actions">
             <button
               type="button"
-              className="mobile-icon-btn"
+              className={`mobile-icon-btn ${page === 'search' ? 'active' : ''}`}
               onClick={() => change('search')}
               title="Search"
             >
@@ -347,7 +444,15 @@ export default function App() {
             </button>
             <button
               type="button"
-              className="mobile-icon-btn"
+              className={`mobile-icon-btn ${page === 'craftbro' ? 'active' : ''}`}
+              onClick={() => change('craftbro')}
+              title="CraftBro AI"
+            >
+              <IconCraftBro size={17} />
+            </button>
+            <button
+              type="button"
+              className={`mobile-icon-btn ${page === 'compose' ? 'active' : ''}`}
               onClick={() => change('compose')}
               title="Create new post"
             >
@@ -355,7 +460,7 @@ export default function App() {
             </button>
             <button
               type="button"
-              className="mobile-avatar-btn"
+              className={`mobile-avatar-btn ${page === 'profile' ? 'active' : ''}`}
               onClick={() => change('profile')}
               title="Your profile & settings"
             >
@@ -490,284 +595,6 @@ function pageTitle(p) {
       compose: 'Share Update',
       settings: 'Preferences & Settings',
     }[p] || 'Workspace'
-  );
-}
-
-function Auth({ onAuth, flash }) {
-  const [mode, setMode] = useState('login');
-  const [step, setStep] = useState('form');
-  const [email, setEmail] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
-  const [form, setForm] = useState({ name: '', username: '', password: '', bio: '' });
-  const [code, setCode] = useState('');
-  const [selected, setSelected] = useState([]);
-
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-
-  async function submit(e) {
-    e.preventDefault();
-    setBusy(true);
-    setErr('');
-    try {
-      if (mode === 'signup') {
-        const fd = new FormData();
-        Object.entries({ ...form, email: email.trim().toLowerCase(), genres: selected.join(',') }).forEach(
-          ([k, v]) => fd.append(k, v)
-        );
-        const d = await request('/auth/register', { method: 'POST', body: fd, form: true });
-        setStep('otp');
-        flash(d.message || 'Verification code sent to your email.');
-      } else {
-        try {
-          const d = await request('/auth/login', {
-            method: 'POST',
-            body: { email: email.trim().toLowerCase(), password: form.password },
-          });
-          onAuth(d);
-        } catch (error) {
-          if (error.code === 'EMAIL_NOT_VERIFIED') {
-            setStep('otp');
-            flash('Verify this existing account once to finish signing in.');
-            return;
-          }
-          throw error;
-        }
-      }
-    } catch (e) {
-      setErr(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function verify(e) {
-    e.preventDefault();
-    setBusy(true);
-    setErr('');
-    try {
-      const d = await request('/auth/verify-register', { method: 'POST', body: { email: email.trim().toLowerCase(), code: code.trim() } });
-      onAuth(d);
-    } catch (e) {
-      setErr(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function resend() {
-    try {
-      await request('/auth/resend-register', { method: 'POST', body: { email: email.trim().toLowerCase() } });
-      flash('A fresh verification code has been sent.');
-    } catch (e) {
-      setErr(e.message);
-    }
-  }
-
-  return (
-    <div className="auth-layout">
-      <div className="auth-art">
-        <div className="auth-art-top">
-          <div className="brand">
-            <span className="brand-mark">
-              <img src="/brand/app-logo.png" alt="" />
-            </span>
-            <span>
-              Craft<span className="brand-light">Hub</span>
-            </span>
-          </div>
-          <div className="art-note">
-            CREATORS, BUILDING WHAT’S NEXT ↗
-          </div>
-        </div>
-
-        <div className="art-orbit orbit-one" />
-        <div className="art-orbit orbit-two" />
-
-        <div className="art-center">
-          <span>
-            <IconSparkles size={34} />
-          </span>
-          <b>
-            Meet your next
-            <br />
-            co-builder.
-          </b>
-          <small>
-            Good things happen when the right people connect.
-            <br />
-            Join the community of developers, creators, and tinkerers.
-          </small>
-        </div>
-
-        <div className="art-stats">
-          <div>
-            <b>Build</b>
-            <span>together</span>
-          </div>
-          <div>
-            <b>Find</b>
-            <span>your team</span>
-          </div>
-          <div>
-            <b>Ship</b>
-            <span>something real</span>
-          </div>
-        </div>
-
-        <div className="auth-caption">The open community for builders and designers.</div>
-      </div>
-
-      <section className="auth-form-wrap">
-        <div className="auth-switch">
-          <span>{mode === 'login' ? 'New to CraftHub?' : 'Already building?'}</span>
-          <button
-            onClick={() => {
-              setMode(mode === 'login' ? 'signup' : 'login');
-              setStep('form');
-              setErr('');
-            }}
-          >
-            {mode === 'login' ? 'Create an account' : 'Log in'}
-          </button>
-        </div>
-
-        <div className="auth-form-inner">
-          <div className="eyebrow">{step === 'otp' ? 'ONE QUICK CHECK' : 'YOUR NEXT CHAPTER'}</div>
-          <h1>
-            {step === 'otp'
-              ? 'Check your inbox'
-              : mode === 'login'
-              ? 'Welcome back.'
-              : 'Start building.'}
-          </h1>
-          <p className="auth-sub">
-            {step === 'otp'
-              ? `Enter the 6-digit code we sent to ${email}.`
-              : 'Find collaborators, share progress, and build something worth showing.'}
-          </p>
-
-          {step === 'form' ? (
-            <form onSubmit={submit} className="auth-form">
-              {mode === 'signup' && (
-                <>
-                  <label>
-                    Full name
-                    <input
-                      required
-                      value={form.name}
-                      onChange={(e) => set('name', e.target.value)}
-                      placeholder="Alex Morgan"
-                    />
-                  </label>
-                  <label>
-                    Username
-                    <input
-                      required
-                      value={form.username}
-                      onChange={(e) => set('username', e.target.value)}
-                      placeholder="alexmorgan"
-                    />
-                  </label>
-                </>
-              )}
-              <label>
-                Email address
-                <input
-                  required
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@domain.com"
-                />
-              </label>
-              <label>
-                Password
-                <input
-                  required
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => set('password', e.target.value)}
-                  placeholder={mode === 'login' ? 'Enter your account password' : 'Create a secure password'}
-                />
-              </label>
-
-              {mode === 'signup' && (
-                <>
-                  <label>
-                    Short bio <span className="optional">optional</span>
-                    <textarea
-                      value={form.bio}
-                      onChange={(e) => set('bio', e.target.value)}
-                      placeholder="What are you building or interested in?"
-                      rows="2"
-                    />
-                  </label>
-                  <div className="genre-select">
-                    <span>What are you into?</span>
-                    <div>
-                      {genres.map((g) => (
-                        <button
-                          type="button"
-                          className={selected.includes(g) ? 'selected' : ''}
-                          onClick={() =>
-                            setSelected((s) =>
-                              s.includes(g) ? s.filter((x) => x !== g) : [...s, g]
-                            )
-                          }
-                          key={g}
-                        >
-                          {g}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-
-              <button className="primary full" disabled={busy}>
-                {busy ? 'Please wait…' : mode === 'login' ? 'Continue →' : 'Create account →'}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={verify} className="auth-form">
-              <label>
-                Verification code
-                <input
-                  required
-                  inputMode="numeric"
-                  maxLength="6"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="000000"
-                  className="otp-input"
-                />
-              </label>
-              <button className="primary full" disabled={busy}>
-                {busy ? 'Verifying…' : 'Verify and continue →'}
-              </button>
-              <button type="button" className="text-button" onClick={resend}>
-                Resend code
-              </button>
-              <button
-                type="button"
-                className="text-button muted"
-                onClick={() => setStep('form')}
-              >
-                Use a different email
-              </button>
-            </form>
-          )}
-
-          {err && <div className="form-error">{err}</div>}
-          <div className="auth-terms">By continuing, you agree to the CraftHub community guidelines.</div>
-        </div>
-
-        <div className="auth-footer">
-          © 2026 CraftHub <span>Built for the builders.</span>
-        </div>
-      </section>
-    </div>
   );
 }
 
@@ -1874,7 +1701,10 @@ function Messages({ token, user, flash, refresh }) {
       const d = await request('/conversations', { token });
       setConvs(d.conversations || []);
       setContacts(d.contacts || []);
-      if (!selected && d.conversations?.length) setSelected(d.conversations[0].id);
+      const isDesktop = typeof window !== 'undefined' && window.innerWidth > 880;
+      if (isDesktop && !selected && d.conversations?.length) {
+        setSelected(d.conversations[0].id);
+      }
     } catch (e) {
       flash(e.message);
     } finally {
