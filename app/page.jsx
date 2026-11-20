@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
+import LandingAuth from './landing-auth';
 import {
   CollaborationHub,
   CollaborationProjectDetail,
@@ -218,7 +219,7 @@ export default function App() {
     setPage('feed');
   };
 
-  if (!token || !user) return <Auth onAuth={signIn} flash={flash} />;
+  if (!token || !user) return <LandingAuth onAuth={signIn} flash={flash} request={request} />;
 
   const change = (p) => {
     setPage(p);
@@ -325,6 +326,40 @@ export default function App() {
       </aside>
 
       <main className="main-area">
+        {/* Mobile Top Navigation Header (Phones) */}
+        <header className="mobile-topbar">
+          <div className="mobile-brand" onClick={() => change('feed')}>
+            <img src="/brand/app-logo.png" alt="CraftHub" />
+            <span>CraftHub</span>
+          </div>
+          <div className="mobile-top-actions">
+            <button
+              type="button"
+              className="mobile-icon-btn"
+              onClick={() => change('search')}
+              title="Search"
+            >
+              <IconSearch size={17} />
+            </button>
+            <button
+              type="button"
+              className="mobile-icon-btn"
+              onClick={() => change('compose')}
+              title="Create new post"
+            >
+              <IconPlus size={17} />
+            </button>
+            <button
+              type="button"
+              className="mobile-avatar-btn"
+              onClick={() => change('profile')}
+              title="Your profile & settings"
+            >
+              {avatar(user, 'tiny')}
+            </button>
+          </div>
+        </header>
+
         <header className="topbar">
           <div className="crumb">
             Workspace <span>/</span> <b>{pageTitle(page)}</b>
@@ -370,6 +405,59 @@ export default function App() {
           />
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation Bar (Phones) */}
+      <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
+        <button
+          type="button"
+          className={`mobile-tab-btn ${page === 'feed' ? 'active' : ''}`}
+          onClick={() => change('feed')}
+        >
+          <IconHome size={20} />
+          <span>Feed</span>
+        </button>
+        <button
+          type="button"
+          className={`mobile-tab-btn ${page === 'explore' ? 'active' : ''}`}
+          onClick={() => change('explore')}
+        >
+          <IconExplore size={20} />
+          <span>Explore</span>
+        </button>
+        <button
+          type="button"
+          className={`mobile-tab-btn ${
+            page === 'collab' || page.startsWith('project:') || page.startsWith('workspace-chat:')
+              ? 'active'
+              : ''
+          }`}
+          onClick={() => change('collab')}
+        >
+          <div className="mobile-tab-icon-wrap">
+            <IconCollab size={20} />
+            <i className="tab-live-badge" />
+          </div>
+          <span>Collab</span>
+        </button>
+        <button
+          type="button"
+          className={`mobile-tab-btn ${page === 'messages' ? 'active' : ''}`}
+          onClick={() => change('messages')}
+        >
+          <div className="mobile-tab-icon-wrap">
+            <IconMessages size={20} />
+          </div>
+          <span>Chats</span>
+        </button>
+        <button
+          type="button"
+          className={`mobile-tab-btn ${page === 'projects' ? 'active' : ''}`}
+          onClick={() => change('projects')}
+        >
+          <IconProjects size={20} />
+          <span>Projects</span>
+        </button>
+      </nav>
 
       {notice && <div className="toast">{notice}</div>}
     </div>
